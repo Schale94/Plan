@@ -1,0 +1,497 @@
+<!DOCTYPE html><html lang="hr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>21-Dnevni Plan – Check + Timeri (za Notion embed)</title>
+<style>
+  :root{
+    --bg:#0f172a;         /* slate-900 */
+    --card:#111827;       /* gray-900 */
+    --muted:#1f2937;      /* gray-800 */
+    --text:#e5e7eb;       /* gray-200 */
+    --text-dim:#9ca3af;   /* gray-400 */
+    --accent:#22d3ee;     /* cyan-400 */
+    --ok:#34d399;         /* emerald-400 */
+    --warn:#f59e0b;       /* amber-500 */
+    --danger:#ef4444;     /* red-500 */
+  }
+  html,body{background:var(--bg); color:var(--text); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji"; margin:0}
+  .wrap{max-width:1024px; margin:0 auto; padding:18px}
+  .row{display:grid; grid-template-columns:1fr; gap:16px}
+  @media(min-width:860px){.row{grid-template-columns:1.6fr 1fr}}
+  .card{background:linear-gradient(180deg,var(--card),#0b1220); border:1px solid #1f2937; border-radius:16px; padding:14px 16px; box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .title{display:flex; align-items:center; gap:10px; font-size:18px; font-weight:700}
+  .title small{color:var(--text-dim); font-weight:500}
+  .sub{font-size:12px; color:var(--text-dim)}
+  .pill{padding:5px 9px; background:#0b1324; border:1px solid #1f2937; border-radius:999px; font-size:12px; color:var(--text-dim)}
+  .kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:8px}
+  .kpi{background:var(--muted); border:1px solid #243045; border-radius:12px; padding:10px}
+  .kpi h3{margin:0; font-size:12px; color:var(--text-dim)}
+  .kpi p{margin:4px 0 0; font-weight:700}
+  .progress{height:8px; border-radius:999px; background:#0b1324; border:1px solid #243045; overflow:hidden}
+  .bar{height:100%; width:0%; background:linear-gradient(90deg,var(--accent),#60a5fa)}
+  .grid{display:grid; grid-template-columns:1fr; gap:12px}
+  @media(min-width:860px){.grid{grid-template-columns:1fr 1fr}}
+  .sect{border:1px solid #243045; border-radius:14px; overflow:hidden}
+  .sect > header{display:flex; justify-content:space-between; gap:10px; align-items:center; background:var(--muted); padding:10px 12px}
+  .sect h3{margin:0; font-size:15px}
+  .tasks{padding:10px 12px; display:grid; gap:8px; background:rgba(4,12,24,.35)}
+  .task{display:flex; gap:10px; align-items:flex-start}
+  .task label{cursor:pointer}
+  .task input[type="checkbox"]{width:18px; height:18px}
+  .timer{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+  .timer input[type="number"]{width:70px; padding:6px 8px; border-radius:8px; border:1px solid #263245; background:#0b1324; color:var(--text)}
+  .btn{border:1px solid #2a3853; background:#0b1324; color:var(--text); padding:7px 10px; border-radius:10px; cursor:pointer}
+  .btn:hover{border-color:#35507d}
+  .btn.accent{border-color:#1aa9bf; color:white; background:linear-gradient(180deg,#0ea5b7,#0b7ea5)}
+  .btn.ok{border-color:#1d8b6b; background:linear-gradient(180deg,#10b981,#0b7d62); color:#001}
+  .btn.warn{border-color:#8a5a10; background:linear-gradient(180deg,#f59e0b,#a86e0a); color:#110900}
+  .btn.danger{border-color:#90333b; background:linear-gradient(180deg,#ef4444,#b91c1c); color:#110000}
+  .when{font-size:12px; color:var(--text-dim)}
+  .chips{display:flex; flex-wrap:wrap; gap:6px}
+  .chip{font-size:11px; padding:3px 8px; border:1px dashed #2a3853; border-radius:999px; color:var(--text-dim)}
+  .tabs{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px}
+  .tab{padding:6px 10px; border:1px solid #28334a; background:#0b1324; color:var(--text-dim); border-radius:999px; cursor:pointer}
+  .tab.active{color:white; border-color:var(--accent); box-shadow:0 0 0 2px rgba(34,211,238,.25) inset}
+  .days{display:grid; grid-template-columns:repeat(7,1fr); gap:6px}
+  .day{padding:10px 0; border:1px solid #27334a; border-radius:10px; text-align:center; font-size:12px; background:#0b1324; cursor:pointer}
+  .day.done{background:linear-gradient(180deg,#0c1a2e,#113647); border-color:#1aa9bf}
+  .muted{color:var(--text-dim)}
+  .footer{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+  .mini{font-size:11px; color:var(--text-dim)}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="row">
+    <!-- LEFT: PLAN + SECTIONS -->
+    <div class="card">
+      <div class="title">OPTIMIZIRANI PLAN – 21 DANA <span class="pill" id="today"></span></div>
+      <div class="sub">Tjedni plan (pon–pet) + vikend. Check liste i neovisni timeri po sekcijama. Stanje se sprema u pregledniku (localStorage).</div>
+      <div style="height:12px"></div><div class="tabs" id="tabs">
+    <button class="tab active" data-view="workdays">Tjedan (Pon–Pet)</button>
+    <button class="tab" data-view="weekend">Vikend</button>
+    <button class="tab" data-view="supps">Suplementi</button>
+  </div>
+
+  <div id="view-workdays">
+    <div class="kpis">
+      <div class="kpi"><h3>Napredak dana</h3><div class="progress"><div id="progressBar" class="bar"></div></div><p id="progressPct">0%</p></div>
+      <div class="kpi"><h3>Voda (cilj 4L)</h3><p><span id="waterNow">0</span> L</p><div class="chips"><button class="btn" data-water="0.5">+0.5L</button><button class="btn" data-water="0.25">+0.25L</button><button class="btn warn" id="resetWater">Reset</button></div></div>
+      <div class="kpi"><h3>Pomodoro</h3><p><span id="podsDone">0</span> cikl.</p><div class="chips"><span class="chip">Fokus 90' + 10–15'</span><span class="chip">Večernji trening</span></div></div>
+      <div class="kpi"><h3>Spavanje</h3><p>do 23:00</p><div class="chips"><span class="chip">Rutina sna</span></div></div>
+    </div>
+    <div style="height:12px"></div>
+
+    <div class="grid">
+      <!-- Jutro -->
+      <section class="sect" data-key="jutro">
+        <header>
+          <div>
+            <h3>🌅 Jutro <span class="when">06:00–06:30</span></h3>
+            <div class="chips"><span class="chip">voda 0.5L</span><span class="chip">magnezij</span><span class="chip">antibiotik</span></div>
+          </div>
+          <div class="timer" data-default="30">
+            <input type="number" min="1" value="30" aria-label="minuta" />
+            <button class="btn accent start">Start</button>
+            <button class="btn pause">Pauza</button>
+            <button class="btn warn reset">Reset</button>
+            <span class="pill time">30:00</span>
+          </div>
+        </header>
+        <div class="tasks">
+          <div class="task"><input type="checkbox" /><label>Buđenje → voda (0.5L) + magnezij + antibiotik</label></div>
+          <div class="task"><input type="checkbox" /><label>Po potrebi: lagana kanabis terapija</label></div>
+          <div class="task"><input type="checkbox" /><label>Čaj: crni ili voćni</label></div>
+          <div class="task"><input type="checkbox" /><label>Priprema shake za posao</label></div>
+          <div class="task"><input type="checkbox" /><label>Vizualizacija dana – mentalne slike</label></div>
+        </div>
+      </section>
+
+      <!-- Posao -->
+      <section class="sect" data-key="posao">
+        <header>
+          <div>
+            <h3>🏭 Posao <span class="when">07:00–15:30</span></h3>
+            <div class="chips"><span class="chip">voda ≥4L</span><span class="chip">pauze</span><span class="chip">pasivni DE</span></div>
+          </div>
+          <div class="timer" data-default="120">
+            <input type="number" min="5" value="120" aria-label="minuta" />
+            <button class="btn accent start">Start</button>
+            <button class="btn pause">Pauza</button>
+            <button class="btn warn reset">Reset</button>
+            <span class="pill time">120:00</span>
+          </div>
+        </header>
+        <div class="tasks">
+          <div class="task"><input type="checkbox" /><label>Fizički rad 6–7h (5–90kg)</label></div>
+          <div class="task"><input type="checkbox" /><label>Pauze + voda, snack/shake</label></div>
+          <div class="task"><input type="checkbox" /><label>09:00 → Shake (whey + zob + orašasti)</label></div>
+          <div class="task"><input type="checkbox" /><label>12:00 → Obrok (tuna + rižin kruh / konkretan obrok)</label></div>
+          <div class="task"><input type="checkbox" /><label>Kofein po potrebi (bez šećera)</label></div>
+          <div class="task"><input type="checkbox" /><label>Pasivno učenje njemačkog</label></div>
+        </div>
+      </section>
+
+      <!-- Povratak -->
+      <section class="sect" data-key="povratak">
+        <header>
+          <div>
+            <h3>🚶 Povratak kući <span class="when">15:30–16:00</span></h3>
+          </div>
+          <div class="timer" data-default="30">
+            <input type="number" min="5" value="30" aria-label="minuta" />
+            <button class="btn accent start">Start</button>
+            <button class="btn pause">Pauza</button>
+            <button class="btn warn reset">Reset</button>
+            <span class="pill time">30:00</span>
+          </div>
+        </header>
+        <div class="tasks">
+          <div class="task"><input type="checkbox" /><label>Reset zona: glazba/podcast/lagano tipkanje</label></div>
+          <div class="task"><input type="checkbox" /><label>Po potrebi: kanabis (umjereno)</label></div>
+          <div class="task"><input type="checkbox" /><label>Čaj ili sugar-free energy</label></div>
+          <div class="task"><input type="checkbox" /><label>Mentalna vizualizacija (2–3 slike popodne)</label></div>
+        </div>
+      </section>
+
+      <!-- Mentalni blok -->
+      <section class="sect" data-key="mental">
+        <header>
+          <div>
+            <h3>🧠 Mentalni blok <span class="when">16:00–18:00</span></h3>
+            <div class="chips"><span class="chip">fokus 90'</span><span class="chip">reset 10–15'</span></div>
+          </div>
+          <div class="timer" data-default="90">
+            <input type="number" min="10" value="90" aria-label="minuta" />
+            <button class="btn accent start">Start</button>
+            <button class="btn pause">Pauza</button>
+            <button class="btn warn reset">Reset</button>
+            <span class="pill time">90:00</span>
+          </div>
+        </header>
+        <div class="tasks">
+          <div class="task"><input type="checkbox" /><label>Učenje jezika / digitalni projekt / pisanje</label></div>
+          <div class="task"><input type="checkbox" /><label>Pomodoro fokus blok</label></div>
+          <div class="task"><input type="checkbox" /><label>Snack (opcija): rižin kruh + tuna</label></div>
+          <div class="task"><input type="checkbox" /><label>Snack (opcija): jogurt + med + borovnice</label></div>
+          <div class="task"><input type="checkbox" /><label>Snack (opcija): ½ banana + whey</label></div>
+        </div>
+      </section>
+
+      <!-- Tranzicija -->
+      <section class="sect" data-key="tranzicija">
+        <header>
+          <div>
+            <h3>🌇 Tranzicija <span class="when">18:00–19:00</span></h3>
+          </div>
+          <div class="timer" data-default="60">
+            <input type="number" min="5" value="60" aria-label="minuta" />
+            <button class="btn accent start">Start</button>
+            <button class="btn pause">Pauza</button>
+            <button class="btn warn reset">Reset</button>
+            <span class="pill time">60:00</span>
+          </div>
+        </header>
+        <div class="tasks">
+          <div class="task"><input type="checkbox" /><label>Tuš + lagana večera (proteini + povrće)</label></div>
+          <div class="task"><input type="checkbox" /><label>Primjer: piletina + povrće + integralni kruh</label></div>
+          <div class="task"><input type="checkbox" /><label>Primjer: govedina/teletina + kuhano povrće</label></div>
+          <div class="task"><input type="checkbox" /><label>Primjer: tuna salata + integralni kruh</label></div>
+        </div>
+      </section>
+
+      <!-- Večer -->
+      <section class="sect" data-key="vecer">
+        <header>
+          <div>
+            <h3>🌙 Večer <span class="when">21:00–23:00</span></h3>
+          </div>
+          <div class="timer" data-default="45">
+            <input type="number" min="5" value="45" aria-label="minuta" />
+            <button class="btn accent start">Start</button>
+            <button class="btn pause">Pauza</button>
+            <button class="btn warn reset">Reset</button>
+            <span class="pill time">45:00</span>
+          </div>
+        </header>
+        <div class="tasks">
+          <div class="task"><input type="checkbox" /><label>Trening: 3–4× (10–15) sklekovi, čučnjevi, podizanje nogu + istezanje</label></div>
+          <div class="task"><input type="checkbox" /><label>Ako je terapija (amfetamin subotom) → završiti na vrijeme</label></div>
+          <div class="task"><input type="checkbox" /><label>Kanabis (opcionalno) za san</label></div>
+          <div class="task"><input type="checkbox" /><label>Spavanje do 23:00 (rutina automatizirana)</label></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- WEEKEND VIEW -->
+  <div id="view-weekend" class="hidden">
+    <section class="sect" data-key="subota">
+      <header>
+        <div>
+          <h3>🗓️ Subota – trening + obitelj/prijatelji</h3>
+        </div>
+        <div class="timer" data-default="60">
+          <input type="number" min="5" value="60" aria-label="minuta" />
+          <button class="btn accent start">Start</button>
+          <button class="btn pause">Pauza</button>
+          <button class="btn warn reset">Reset</button>
+          <span class="pill time">60:00</span>
+        </div>
+      </header>
+      <div class="tasks">
+        <div class="task"><input type="checkbox" /><label>Intenzivan trening s vlastitom težinom (3–4 kruga)</label></div>
+        <div class="task"><input type="checkbox" /><label>Dan za obitelj i prijatelje</label></div>
+        <div class="task"><input type="checkbox" /><label>Mentalni reset – slušaj tijelo</label></div>
+      </div>
+    </section>
+    <section class="sect" data-key="nedjelja">
+      <header>
+        <div>
+          <h3>🧘 Nedjelja – mentalni reset i odmor</h3>
+        </div>
+        <div class="timer" data-default="20">
+          <input type="number" min="5" value="10" aria-label="minuta" />
+          <button class="btn accent start">Start</button>
+          <button class="btn pause">Pauza</button>
+          <button class="btn warn reset">Reset</button>
+          <span class="pill time">10:00</span>
+        </div>
+      </header>
+      <div class="tasks">
+        <div class="task"><input type="checkbox" /><label>Meditacija 5–10 min (i srijedom)</label></div>
+        <div class="task"><input type="checkbox" /><label>Full relax (malo ekrana, priroda/čitanje)</label></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- SUPPS VIEW -->
+  <div id="view-supps" class="hidden">
+    <section class="sect" data-key="supps">
+      <header><h3>💊 Suplementi</h3></header>
+      <div class="tasks">
+        <div class="task"><input type="checkbox" /><label>Magnezij – ujutro</label></div>
+        <div class="task"><input type="checkbox" /><label>Kreatin 3–5 g (pon–ned), najbolje ujutro</label></div>
+        <div class="task"><input type="checkbox" /><label>Whey 1–2 porcije kroz dan</label></div>
+        <div class="task"><input type="checkbox" /><label>Antibiotik – svako jutro</label></div>
+        <div class="task"><input type="checkbox" /><label>💼 Dodatna zarada: tattoo template projekt (ponedjeljak u mentalnom bloku)</label></div>
+      </div>
+    </section>
+  </div>
+  <div style="height:12px"></div>
+
+  <div class="footer">
+    <button class="btn ok" id="clearDay">Resetiraj današnje checkove</button>
+    <button class="btn danger" id="clearAll">Puni reset (sve)</button>
+    <span class="mini">Savjet: postavi ovu stranicu u Notion kao <b>Embed</b>. Stanje se čuva lokalno.</span>
+  </div>
+</div>
+
+<!-- RIGHT: 21 DANA TRACKER -->
+<div class="card">
+  <div class="title">📆 21-dnevni tracker <small>(klik na dan za toggle)</small></div>
+  <div class="days" id="days"></div>
+  <div style="height:12px"></div>
+  <div class="kpis">
+    <div class="kpi"><h3>Ukupno završeno</h3><p id="daysDone">0/21</p></div>
+    <div class="kpi"><h3>Streak</h3><p id="streak">0 🔥</p></div>
+    <div class="kpi"><h3>Sljedeći cilj</h3><p>7/14/21</p></div>
+    <div class="kpi"><h3>Napomena</h3><p class="muted">Dani se ne resetiraju automatski.</p></div>
+  </div>
+  <div style="height:12px"></div>
+  <div class="title">🧯 Brzi alati</div>
+  <div class="chips">
+    <button class="btn" id="addPomodoro">+1 Pomodoro</button>
+    <button class="btn" id="meditacijaSrijeda">Srijeda: Meditacija ✓</button>
+    <button class="btn" id="markToday">Označi današnji dan ✓</button>
+    <button class="btn warn" id="unmarkToday">Skini oznaku za danas</button>
+  </div>
+</div>
+
+  </div>
+</div><script>
+(function(){
+  const STORAGE_KEY = 'plan21';
+  const state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+  // Init days 1..21
+  const daysWrap = $('#days');
+  const days = state.days || Array.from({length:21}, (_,i)=>({n:i+1, done:false, ts:null}));
+  const todayStr = new Date().toISOString().slice(0,10);
+
+  function renderDays(){
+    daysWrap.innerHTML = '';
+    days.forEach((d,idx)=>{
+      const el = document.createElement('button');
+      el.className = 'day' + (d.done?' done':'');
+      el.textContent = d.n;
+      el.addEventListener('click',()=>{
+        days[idx].done = !days[idx].done;
+        days[idx].ts = days[idx].done ? Date.now() : null;
+        save();
+        renderDays();
+      });
+      daysWrap.appendChild(el);
+    });
+    const done = days.filter(d=>d.done).length;
+    $('#daysDone').textContent = done + '/21';
+
+    // Streak = max uzastopnih od posljednjeg obavljenog
+    let streak = 0; let maxStreak = 0;
+    days.forEach(d=>{if(d.done){streak++; maxStreak=Math.max(maxStreak,streak)} else {streak=0}});
+    $('#streak').textContent = maxStreak + ' 🔥';
+  }
+
+  // Render today
+  $('#today').textContent = new Date().toLocaleDateString('hr-HR', {weekday:'long', year:'numeric', month:'2-digit', day:'2-digit'});
+
+  // Tabs
+  const tabs = $$('#tabs .tab');
+  tabs.forEach(t=>t.addEventListener('click',()=>{
+    tabs.forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    const v = t.dataset.view;
+    ['workdays','weekend','supps'].forEach(name=>{
+      $('#view-'+name).classList.toggle('hidden', name!==v);
+    });
+  }));
+
+  // Checklist + persistence
+  const sections = $$('.sect');
+  function loadChecks(){
+    sections.forEach(sec=>{
+      const key = sec.dataset.key;
+      const checks = (state.checks && state.checks[key]) || [];
+      $$('.tasks input[type="checkbox"]', sec).forEach((cb,i)=>{ cb.checked = !!checks[i]; });
+    });
+    updateProgress();
+  }
+  function saveChecks(){
+    state.checks = state.checks || {};
+    sections.forEach(sec=>{
+      const key = sec.dataset.key;
+      const cbs = $$('.tasks input[type="checkbox"]', sec).map(cb=>cb.checked);
+      state.checks[key] = cbs;
+    });
+    save();
+    updateProgress();
+  }
+  sections.forEach(sec=>{
+    $$('.tasks input[type="checkbox"]', sec).forEach(cb=>cb.addEventListener('change', saveChecks));
+  });
+
+  // Daily auto-clear at new date
+  function checkMidnightReset(){
+    if(state.lastDate && state.lastDate !== todayStr){
+      // clear only workday & supps, not 21-day tracker
+      state.checks = {};
+      state.water = 0;
+      localTimers.forEach(t=>t.reset(true));
+    }
+    state.lastDate = todayStr;
+  }
+
+  // Water tracker
+  state.water = state.water || 0;
+  function updateWater(){ $('#waterNow').textContent = (Math.round((state.water||0)*100)/100).toString(); save(); }
+  $$('#view-workdays [data-water]').forEach(btn=>btn.addEventListener('click',()=>{ state.water = (state.water||0) + parseFloat(btn.dataset.water); updateWater(); }));
+  $('#resetWater').addEventListener('click',()=>{ state.water = 0; updateWater(); });
+
+  // Pomodoro counter
+  state.pods = state.pods || 0;
+  function updatePods(){ $('#podsDone').textContent = state.pods; save(); }
+  $('#addPomodoro').addEventListener('click',()=>{ state.pods++; updatePods(); });
+
+  // Mark/unmark today in 21-day tracker
+  $('#markToday').addEventListener('click',()=>{ const idx = (days.findIndex(d=>!d.done)); if(idx>-1){ days[idx].done=true; days[idx].ts=Date.now(); save(); renderDays(); }});
+  $('#unmarkToday').addEventListener('click',()=>{ const idx = days.findIndex(d=>d.done); if(idx>-1){ days[idx].done=false; days[idx].ts=null; save(); renderDays(); }});
+
+  // Srijeda meditacija quick check (samo info – ne veže se za određenu checkbox)
+  $('#meditacijaSrijeda').addEventListener('click',()=>{ alert('Podsjetnik: srijeda i nedjelja – 5–10 min meditacije. ✅'); });
+
+  // Reset buttons
+  $('#clearDay').addEventListener('click',()=>{ if(confirm('Resetirati današnje checkove?')){ state.checks={}; save(); loadChecks(); }});
+  $('#clearAll').addEventListener('click',()=>{ if(confirm('Puni reset (sve)? 21-dnevni tracker ostaje.)')){ localStorage.removeItem(STORAGE_KEY); location.reload(); }});
+
+  // Progress bar
+  function updateProgress(){
+    const all = sections.flatMap(sec=> $$('.tasks input[type="checkbox"]', sec));
+    const total = all.length;
+    const done = all.filter(cb=>cb.checked).length;
+    const pct = total? Math.round((done/total)*100) : 0;
+    $('#progressBar').style.width = pct + '%';
+    $('#progressPct').textContent = pct + '%';
+  }
+
+  // Independent timers per section
+  const localTimers = [];
+  function setupTimer(timerEl, key){
+    let interval=null, remaining=0, running=false;
+    const input = $('input[type="number"]', timerEl);
+    const time = $('.time', timerEl);
+    const startBtn = $('.start', timerEl);
+    const pauseBtn = $('.pause', timerEl);
+    const resetBtn = $('.reset', timerEl);
+
+    function fmt(s){
+      const m = Math.floor(s/60).toString().padStart(2,'0');
+      const ss = Math.floor(s%60).toString().padStart(2,'0');
+      return `${m}:${ss}`;
+    }
+
+    function draw(){ time.textContent = fmt(remaining); }
+    function tick(){ remaining--; draw(); if(remaining<=0){ stop(); time.textContent='00:00'; notify(key); }}
+    function start(){ if(running) return; running=true; interval=setInterval(tick,1000); }
+    function stop(){ running=false; if(interval){ clearInterval(interval); interval=null; } }
+    function reset(silent){ stop(); remaining = (state.timers && state.timers[key]) || (parseInt(input.value)||timerEl.dataset.default*1)*60; draw(); if(!silent) saveTimer(); }
+    function saveTimer(){ state.timers = state.timers || {}; state.timers[key]= remaining; save(); }
+
+    startBtn.addEventListener('click',()=>{ if(remaining<=0){ remaining = (parseInt(input.value)||0)*60; } start(); });
+    pauseBtn.addEventListener('click', stop);
+    resetBtn.addEventListener('click',()=> reset());
+    input.addEventListener('change',()=>{ remaining = (parseInt(input.value)||0)*60; draw(); saveTimer(); });
+
+    // init
+    remaining = (state.timers && state.timers[key]) || (parseInt(input.value)||timerEl.dataset.default*1)*60;
+    draw();
+
+    localTimers.push({reset});
+  }
+
+  function notify(name){
+    try{
+      if(Notification && Notification.permission==='granted'){
+        new Notification('Timer gotov: '+name);
+      } else if(Notification && Notification.permission!=='denied'){
+        Notification.requestPermission();
+      }
+    }catch(e){}
+    // Audio ping
+    const beeps = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABYAAAABAAgAZGF0YQAAAAA=');
+    beeps.play().catch(()=>{});
+  }
+
+  // Save wrapper
+  function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...state, days })); }
+
+  // Initialize timers per section
+  $$('.sect').forEach(sec=>{
+    const t = $('.timer', sec);
+    if(t){ setupTimer(t, sec.dataset.key); }
+  });
+
+  // Midnight reset check
+  checkMidnightReset();
+
+  // Load checks from storage
+  loadChecks();
+  updateWater();
+  updatePods();
+  renderDays();
+})();
+</script></body>
+</html>
